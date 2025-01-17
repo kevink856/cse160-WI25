@@ -91,9 +91,31 @@ void callVectorAdd2Kernel(Matrix* a, Matrix* b, Matrix* out, cl_context* context
     CHECK_ERR(err, "clCreateBuffer out");
 
     //@@ Copy memory to the GPU here
+    err = clEnqueueWriteBuffer(*queue,
+		    device_input_1,
+		    CL_TRUE,
+		    0,
+		    a->shape[0] * a->shape[1] * sizeof(int),
+		    a->data,
+		    0,
+		    NULL,
+		    NULL);
+    CHECK_ERR(err, "clEnqueueWriteBuffer 1");
+
+    err = clEnqueueWriteBuffer(*queue,
+		    device_input_2,
+		    CL_TRUE,
+		    0,
+		    b->shape[0] * b->shape[1] * sizeof(int),
+		    b->data,
+		    0,
+		    NULL,
+		    NULL);
+    CHECK_ERR(err, "clEnqueueWriteBuffer 2");
 
     //@@ define local and global work sizes
-    unsigned int size_a = 0; // @@ replace this with sizeof(a)
+    unsigned int size_a = a->shape[0] * a->shape[1]; // @@ replace this with sizeof(a)
+    global_item_size = size_a;
 
     // Set the arguments to the kernel
     err = clSetKernelArg(kernel, 0, sizeof(cl_mem), &device_input_1);
@@ -106,10 +128,36 @@ void callVectorAdd2Kernel(Matrix* a, Matrix* b, Matrix* out, cl_context* context
     CHECK_ERR(err, "clSetKernelArg 3");
 
     //@@ Launch the GPU Kernel here
+    err = clEnqueueNDRangeKernel(*queue,
+		    kernel,
+		    1,
+		    NULL,
+		    &global_item_size,
+		    NULL,
+		    0,
+		    NULL,
+		    NULL);
+    CHECK_ERR(err, "clEnqueueNDRangeKernel");
 
     //@@ Copy the GPU memory back to the CPU here
+    err = clEnqueueReadBuffer(*queue,
+		    device_output,
+		    CL_TRUE,
+		    0,
+		    out->shape[0] * out->shape[1] * sizeof(int),
+		    out->data,
+		    0,
+		    NULL,
+		    NULL);
+    CHECK_ERR(err, "clEnqueueReadBuffer");
 
     //@@ Free the GPU memory here
+    clReleaseProgram(program);
+    clReleaseKernel(kernel);
+
+    clReleaseMemObject(device_input_1);
+    clReleaseMemObject(device_input_2);
+    clReleaseMemObject(device_output);
 
     // Release Host Memory
     free(kernel_source);
@@ -139,7 +187,9 @@ void part1(Matrix* host_input_1, Matrix* host_input_2, Matrix* host_input_3, Mat
     CheckMatrix(answer, host_output);
     SaveMatrix(output_file, host_output);
 
-    //@@ Free the GPU memory here
+    //@@ Release OpenCL objects here
+    clReleaseContext(context);
+    clReleaseCommandQueue(queue);
 }
 
 void callVectorAdd4Kernel(Matrix* a, Matrix* b, Matrix* c, Matrix* d, Matrix* out, cl_context* context, cl_command_queue* queue) {
@@ -206,9 +256,53 @@ void callVectorAdd4Kernel(Matrix* a, Matrix* b, Matrix* c, Matrix* d, Matrix* ou
     CHECK_ERR(err, "clCreateBuffer out");
 
     //@@ Copy memory to the GPU here
+    err = clEnqueueWriteBuffer(*queue,
+		    device_input_1,
+		    CL_TRUE,
+		    0,
+		    a->shape[0] * a->shape[1] * sizeof(int),
+		    a->data,
+		    0,
+		    NULL,
+		    NULL);
+    CHECK_ERR(err, "clEnqueueWriteBuffer 1");
+
+    err = clEnqueueWriteBuffer(*queue,
+		    device_input_2,
+		    CL_TRUE,
+		    0,
+		    b->shape[0] * b->shape[1] * sizeof(int),
+		    b->data,
+		    0,
+		    NULL,
+		    NULL);
+    CHECK_ERR(err, "clEnqueueWriteBuffer 2");
+
+    err = clEnqueueWriteBuffer(*queue,
+		    device_input_3,
+		    CL_TRUE,
+		    0,
+		    c->shape[0] * c->shape[1] * sizeof(int),
+		    c->data,
+		    0,
+		    NULL,
+		    NULL);
+    CHECK_ERR(err, "clEnqueueWriteBuffer 3");
+
+    err = clEnqueueWriteBuffer(*queue,
+		    device_input_4,
+		    CL_TRUE,
+		    0,
+		    d->shape[0] * d->shape[1] * sizeof(int),
+		    d->data,
+		    0,
+		    NULL,
+		    NULL);
+    CHECK_ERR(err, "clEnqueueWriteBuffer 4");
 
     //@@ define local and global work sizes
-    unsigned int size_a = 0; // @@ replace this with sizeof(a)
+    unsigned int size_a = a->shape[0] * a->shape[1]; // @@ replace this with sizeof(a)
+    global_item_size = size_a;
 
     // Set the arguments to the kernel
     err = clSetKernelArg(kernel, 0, sizeof(cl_mem), &device_input_1);
@@ -225,10 +319,38 @@ void callVectorAdd4Kernel(Matrix* a, Matrix* b, Matrix* c, Matrix* d, Matrix* ou
     CHECK_ERR(err, "clSetKernelArg 5");
 
     //@@ Launch the GPU Kernel here
+    err = clEnqueueNDRangeKernel(*queue,
+		    kernel,
+		    1,
+		    NULL,
+		    &global_item_size,
+		    NULL,
+		    0,
+		    NULL,
+		    NULL);
+    CHECK_ERR(err, "clEnqueueNDRangeKernel");
 
     //@@ Copy the GPU memory back to the CPU here
+    err = clEnqueueReadBuffer(*queue,
+		    device_output,
+		    CL_TRUE,
+		    0,
+		    out->shape[0] * out->shape[1] * sizeof(int),
+		    out->data,
+		    0,
+		    NULL,
+		    NULL);
+    CHECK_ERR(err, "clEnqueueReadBuffer");
 
     //@@ Free the GPU memory here
+    clReleaseProgram(program);
+    clReleaseKernel(kernel);
+
+    clReleaseMemObject(device_input_1);
+    clReleaseMemObject(device_input_2);
+    clReleaseMemObject(device_input_3);
+    clReleaseMemObject(device_input_4);
+    clReleaseMemObject(device_output);
 
     // Release Host Memory
     free(kernel_source);
@@ -256,7 +378,9 @@ void part2(Matrix* host_input_1, Matrix* host_input_2, Matrix* host_input_3, Mat
     CheckMatrix(answer, host_output);
     SaveMatrix(output_file, host_output);
 
-    //@@ Free the GPU memory here
+    //@@ Release OpenCL objects here
+    clReleaseContext(context);
+    clReleaseCommandQueue(queue);
 }
 
 int main(int argc, char *argv[])
@@ -296,7 +420,7 @@ int main(int argc, char *argv[])
     // Allocate the memory for the output
     host_output.shape[0] = host_input_1.shape[0];
     host_output.shape[1] = host_input_1.shape[1];
-    host_output.data = (int *)malloc(sizeof(int) * host_output.shape[0] * host_output.shape[1]);
+    host_output.data = (int *)calloc(sizeof(int), host_output.shape[0] * host_output.shape[1]);
 
     // Time measurement variables
     clock_t start, end;
@@ -317,8 +441,9 @@ int main(int argc, char *argv[])
     printf("Execution time: %.2fms\n", cpu_time_used);
     printf("==============Finished Program 1==============\n");
 
-
-
+    // Cleanup and prepare for second program.
+    free(host_output.data);
+    host_output.data = (int *)calloc(sizeof(int), host_output.shape[0] * host_output.shape[1]);
 
     // =================================================================
     printf("==============Starting Program 2==============\n");
